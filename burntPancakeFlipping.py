@@ -62,26 +62,29 @@ def flip_pancake(pancake, range):
 
 
 def bfs(pancake):
-    count = 0
+    cost = 0
     visited = []
     fringe = [pancake]
     print('Starting: ', pancake)
     while fringe[0] != '1w2w3w4w':
-        #count += 1
-        #if fringe[0] in visited:
-        #    break
-        #print('Node: ', fringe[0])
-        #print('Fringe: ', fringe)
+        if fringe[0] in visited:
+            fringe.pop(0)
+            continue
         for i in range(2,9,2):
             flip = flip_pancake(fringe[0], i)
-            #print(flip)
             if flip in visited:
                 continue
+            cost += i//2
+            print(flip[:i] + '|' + flip[i:] + ',', 'Flip Cost: ' + str(i//2) + ',', 'Total Cost: ' + str(cost))
             fringe.append(flip)
-        #break
         visited.append(fringe[0])
         fringe.pop(0)
-    print('Visited: ', len(visited))
-    #print(fringe[0])
+    print('Total Cost:', cost)
+    print('Visited:', len(visited))
+
+def aStar(pancake):
+
+    while True:
+        
 
 bfs('1b2b3b4b')
