@@ -59,26 +59,47 @@ def flip_pancake(pancake, range):
     #print(''.join(endlist))
     return ''.join(endlist)
 
+class BfsNode:
+    def __init__(self, pancake):
+        self.pancake = pancake
+        self.parent = None
+        self.flipcost = 0
+
 
 def bfs(pancake):
     cost = 0
     visited = []
-    fringe = [pancake]
-    print('Starting: ', pancake)
-    while fringe[0] != '1w2w3w4w':
-        if fringe[0] in visited:
+    start = BfsNode(pancake)
+    fringe = [start]
+    print('Starting: ', fringe[0].pancake + '|')
+    while fringe[0].pancake != '1w2w3w4w':
+        #print(fringe[0].pancake)
+        if fringe[0].pancake in visited:
             fringe.pop(0)
             continue
         for i in range(2,9,2):
-            flip = flip_pancake(fringe[0], i)
+            flip = flip_pancake(fringe[0].pancake, i)
             if flip in visited:
                 continue
+            newChild = BfsNode(flip)
+            newChild.parent = fringe[0]
+            newChild.flipcost = i
             cost += i//2
-            print(flip[:i] + '|' + flip[i:] + ',', 'Flip Cost: ' + str(i//2) + ',', 'Total Cost: ' + str(cost))
-            fringe.append(flip)
-        visited.append(fringe[0])
+            #print(flip[:i] + '|' + flip[i:] + ',', 'Flip Cost: ' + str(i//2) + ',', 'Total Cost: ' + str(cost))
+            fringe.append(newChild)
+        visited.append(fringe[0].pancake)
         fringe.pop(0)
-    print('Total Cost:', cost)
+    goalNode = fringe[0]
+    #print(goalNode)
+    #print(goalNode.parent)
+    finalList = []
+    while goalNode.parent is not None:
+        finalList.insert(0, goalNode)
+        goalNode = goalNode.parent
+    for node in finalList:
+        print(node.pancake[:node.flipcost] + '|' + node.pancake[node.flipcost:])
+
+    print('Total Flips:', cost)
     print('Visited:', len(visited))
 
 class ListNode:
@@ -96,7 +117,7 @@ class ListNode:
         for i in range(1, 8, 2):
             if self.pancake[i] is 'b':
                 totalb += 1
-        return max_pancake + totalb
+        return max(max_pancake, totalb)
 
 
     def __init__(self, pancake):
@@ -118,4 +139,4 @@ def aStar(pancake):
         #for i in range(2,9,2):
         #    flip = flip_pancake(pancake)
 
-aStar('1w2w3w4w')
+bfs('1b2b3b4b')
