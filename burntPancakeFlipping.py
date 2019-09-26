@@ -60,7 +60,6 @@ def flip_pancake(pancake, range):
     return ''.join(endlist)
 
 
-
 def bfs(pancake):
     cost = 0
     visited = []
@@ -82,9 +81,41 @@ def bfs(pancake):
     print('Total Cost:', cost)
     print('Visited:', len(visited))
 
+class ListNode:
+    def heuristic(self):
+        max_pancake = 0
+        totalb = 0
+        if int(self.pancake[0]) is not 1:
+            max_pancake = 1
+        if int(self.pancake[2]) is not 2:
+            max_pancake = 2
+        if int(self.pancake[4]) is not 3:
+            max_pancake = 3
+        if int(self.pancake[6]) is not 4:
+            max_pancake = 4
+        for i in range(1, 8, 2):
+            if self.pancake[i] is 'b':
+                totalb += 1
+        return max_pancake + totalb
+
+
+    def __init__(self, pancake):
+        self.pancake = pancake
+        self.parent = None
+        self.g = 0
+        self.h = self.heuristic()
+        self.f = self.g + self.h
+
+
+
 def aStar(pancake):
+    init_node = ListNode(pancake)
+    openlist = [init_node]
+    closedlist = []
+    print(openlist[0].h)
+    #while len(openlist) > 0:
 
-    while True:
-        
+        #for i in range(2,9,2):
+        #    flip = flip_pancake(pancake)
 
-bfs('1b2b3b4b')
+aStar('1w2w3w4w')
