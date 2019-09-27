@@ -83,7 +83,7 @@ def bfs(pancake):
                 continue
             newChild = BfsNode(flip)
             newChild.parent = fringe[0]
-            newChild.flipcost = i
+            newChild.flipcost = i//2
             cost += i//2
             #print(flip[:i] + '|' + flip[i:] + ',', 'Flip Cost: ' + str(i//2) + ',', 'Total Cost: ' + str(cost))
             fringe.append(newChild)
@@ -93,16 +93,25 @@ def bfs(pancake):
     #print(goalNode)
     #print(goalNode.parent)
     finalList = []
+    leastFlips = 0
     while goalNode.parent is not None:
         finalList.insert(0, goalNode)
+        leastFlips += goalNode.flipcost
         goalNode = goalNode.parent
     for node in finalList:
-        print(node.pancake[:node.flipcost] + '|' + node.pancake[node.flipcost:])
+        print(node.pancake[:node.flipcost] + '|' + node.pancake[node.flipcost:], node.flipcost)
+    print('Least Flips to find solution:', leastFlips)
+    print('Total Flips during search:', cost)
+    print('Total new nodes visited during search:', len(visited))
 
-    print('Total Flips:', cost)
-    print('Visited:', len(visited))
+class AstarNode:
+    def __init__(self, pancake):
+        self.pancake = pancake
+        self.parent = None
+        self.g = 0
+        self.h = self.heuristic()
+        self.f = self.g + self.h
 
-class ListNode:
     def heuristic(self):
         max_pancake = 0
         totalb = 0
@@ -119,24 +128,57 @@ class ListNode:
                 totalb += 1
         return max(max_pancake, totalb)
 
-
-    def __init__(self, pancake):
-        self.pancake = pancake
-        self.parent = None
-        self.g = 0
-        self.h = self.heuristic()
+    def getG(self):
+        self.g = self.parent.g + 1
         self.f = self.g + self.h
 
+def tiebreak(minlist, openlist):
+    d = {}
+    for i in minlist:
+        tmp = openlist[i].pancake
+        print(type(tmp))
+        tmp = tmp.replace('w', '1')
+        tmp = tmp.replace('b', '0')
+        d[i] = int(tmp)
+    maxkey = 0
+    maxval = 0
+    for key, val in d.items():
+        if val > maxval:
+            maxval = val
+            maxkey = key
+    return openlist[maxkey]
 
+def minf(openlist):
+    min = 0
+    minList = [0]
+    for i in range(len(openlist)):
+        if openlist[i].f < openlist[min].f:
+            minList = [i]
+            min = i
+        elif openlist[i].f == openlist[min].f:
+            minList.append(i)
+    if len(minList) > 1:
+        return tiebreak(minList, openlist)
+    else:
+        return openlist.pop(min)
 
 def aStar(pancake):
-    init_node = ListNode(pancake)
-    openlist = [init_node]
+    openlist = [AstarNode(pancake)]
     closedlist = []
     print(openlist[0].h)
-    #while len(openlist) > 0:
+    solutionNode = None
+    while len(openlist) > 0:
+        current = minf(openlist)
+        for i in range(2,9,2):
+            flip = flip_pancake(current.pancake, i)
+            newChild = AstarNode(flip)
+            newChild.parent = current
+            newChild.getG()
+            if flip is '1w2w3w4w':
+                #solutionNode = newChild
+                print(newChile.pancake)
+                break
+            openlist.append(newChild)
+    #print(solutionNode.pancake, solution.g)      
 
-        #for i in range(2,9,2):
-        #    flip = flip_pancake(pancake)
-
-bfs('1b2b3b4b')
+aStar('1b2b3b4b')
