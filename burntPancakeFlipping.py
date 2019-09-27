@@ -1,4 +1,5 @@
 import copy
+import sys
 
 def flip_pancake(pancake, range):
     strlist = list(pancake)
@@ -71,7 +72,6 @@ def bfs(pancake):
     visited = []
     start = BfsNode(pancake)
     fringe = [start]
-    print('Starting: ', fringe[0].pancake + '|')
     while fringe[0].pancake != '1w2w3w4w':
         #print(fringe[0].pancake)
         if fringe[0].pancake in visited:
@@ -97,17 +97,25 @@ def bfs(pancake):
     while goalNode.parent is not None:
         finalList.insert(0, goalNode)
         leastFlips += goalNode.flipcost
+        goalNode.parent.childcost = goalNode.flipcost
+        goalNode.parent.split = goalNode.flipcost * 2
         goalNode = goalNode.parent
+    finalList.insert(0, goalNode)
     for node in finalList:
-        print(node.pancake[:node.flipcost] + '|' + node.pancake[node.flipcost:], node.flipcost)
+        try:
+            print(node.pancake[:node.split] + '|' + node.pancake[node.split:], node.childcost)
+        except:
+            print(node.pancake)
+        #print(node.pancake[:node.flipcost*2] + '|' + node.pancake[node.flipcost*2:], node.flipcost)
     print('Least Flips to find solution:', leastFlips)
     print('Total Flips during search:', cost)
     print('Total new nodes visited during search:', len(visited))
 
 class AstarNode:
-    def __init__(self, pancake):
+    def __init__(self, pancake, flipLocation=0):
         self.pancake = pancake
         self.parent = None
+        self.flipLocation = flipLocation
         self.g = 0
         self.h = self.heuristic()
         self.f = self.g + self.h
@@ -128,15 +136,14 @@ class AstarNode:
                 totalb += 1
         return max(max_pancake, totalb)
 
-    def getG(self):
-        self.g = self.parent.g + 1
+    def getG(self, flips):
+        self.g = self.parent.g + flips
         self.f = self.g + self.h
 
 def tiebreak(minlist, openlist):
     d = {}
     for i in minlist:
         tmp = openlist[i].pancake
-        print(type(tmp))
         tmp = tmp.replace('w', '1')
         tmp = tmp.replace('b', '0')
         d[i] = int(tmp)
@@ -146,7 +153,8 @@ def tiebreak(minlist, openlist):
         if val > maxval:
             maxval = val
             maxkey = key
-    return openlist[maxkey]
+    #print(openlist[maxkey])
+    return openlist.pop(maxkey)
 
 def minf(openlist):
     min = 0
@@ -158,27 +166,52 @@ def minf(openlist):
         elif openlist[i].f == openlist[min].f:
             minList.append(i)
     if len(minList) > 1:
+        #print('tie break')
         return tiebreak(minList, openlist)
     else:
         return openlist.pop(min)
 
+
+
 def aStar(pancake):
     openlist = [AstarNode(pancake)]
-    closedlist = []
-    print(openlist[0].h)
+    closedset = set()
     solutionNode = None
-    while len(openlist) > 0:
+    while solutionNode is None:
+        #print([i.pancake for i in openlist])
         current = minf(openlist)
+        #print([i.pancake for i in openlist])
+        #print('Node:', current.pancake)
         for i in range(2,9,2):
             flip = flip_pancake(current.pancake, i)
-            newChild = AstarNode(flip)
+            newChild = AstarNode(flip, i)
             newChild.parent = current
-            newChild.getG()
-            if flip is '1w2w3w4w':
-                #solutionNode = newChild
-                print(newChile.pancake)
+            newChild.getG(i//2)
+            if flip == '1w2w3w4w':
+                solutionNode = newChild
                 break
-            openlist.append(newChild)
-    #print(solutionNode.pancake, solution.g)      
+            if flip not in closedset:
+                openlist.append(newChild)
+            #print('Test')
+        closedset.add(current.pancake)
+    #print(solutionNode.pancake, solutionNode.g, solution) 
+    finalList = []
+    while solutionNode.parent is not None:
+        finalList.insert(0, solutionNode)
+        solutionNode.parent.split = solutionNode.flipLocation
+        solutionNode = solutionNode.parent
+    finalList.insert(0, solutionNode)
+    for i in finalList:
+        try:
+            print(i.pancake[:i.split] + '|' + i.pancake[i.split:], 'g=' + str(i.g), 'h=' + str(i.h))
+        except:
+            print(i.pancake, 'g=' + str(i.g), 'h=' + str(i.h))
 
-aStar('1b2b3b4b')
+
+alg = sys.argv[1][-1]
+pancakestr = sys.argv[1][:-2]
+
+if alg == 'f':
+    bfs(pancakestr)
+elif alg == 'a':
+    aStar(pancakestr)
