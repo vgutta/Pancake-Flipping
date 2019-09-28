@@ -1,7 +1,11 @@
-import copy
-import sys
+import copy # used for deep copy
+import sys #used for bash args
 
-def flip_pancake(pancake, range):
+'''
+Given an input string of size 8 and index to flip at
+this function returns the flipped order of the pancakes
+'''
+def flip_pancake(pancake, range): 
     strlist = list(pancake)
     endlist = copy.deepcopy(strlist)
     if range is 2:
@@ -57,23 +61,32 @@ def flip_pancake(pancake, range):
         else:
             endlist[1] = 'b'
 
-    #print(''.join(endlist))
     return ''.join(endlist)
 
+'''
+Instances of Nodes in BFS search tree
+'''
 class BfsNode:
     def __init__(self, pancake):
-        self.pancake = pancake
-        self.parent = None
-        self.flipcost = 0
+        self.pancake = pancake # string of pancakes orientation
+        self.parent = None # parent node
+        self.flipcost = 0 # index of parent where flip took place
 
-
+'''
+Takes the starting pancakes orientation
+Creates 4 possible flips for each orientation
+Adds starting order to list. Then for each of the four
+possible flips for each order. If the new child's pancake orientation
+was not visited already it will be added to the fringe
+in the order that its expanded.
+Stops when goal state 1w2w3w4w is encountered in the fringe.
+'''
 def bfs(pancake):
     cost = 0
     visited = []
     start = BfsNode(pancake)
     fringe = [start]
     while fringe[0].pancake != '1w2w3w4w':
-        #print(fringe[0].pancake)
         if fringe[0].pancake in visited:
             fringe.pop(0)
             continue
@@ -85,13 +98,12 @@ def bfs(pancake):
             newChild.parent = fringe[0]
             newChild.flipcost = i//2
             cost += i//2
-            #print(flip[:i] + '|' + flip[i:] + ',', 'Flip Cost: ' + str(i//2) + ',', 'Total Cost: ' + str(cost))
             fringe.append(newChild)
         visited.append(fringe[0].pancake)
         fringe.pop(0)
+    
+    # following actions are for printing purposes only
     goalNode = fringe[0]
-    #print(goalNode)
-    #print(goalNode.parent)
     finalList = []
     leastFlips = 0
     while goalNode.parent is not None:
@@ -106,11 +118,20 @@ def bfs(pancake):
             print(node.pancake[:node.split] + '|' + node.pancake[node.split:], node.childcost)
         except:
             print(node.pancake)
-        #print(node.pancake[:node.flipcost*2] + '|' + node.pancake[node.flipcost*2:], node.flipcost)
     print('Least Flips to find solution:', leastFlips)
     print('Total Flips during search:', cost)
     print('Total new nodes visited during search:', len(visited))
 
+'''
+Class to create nodes for A* search algorithm
+Again pancake is the string of pancakes orientation
+
+Heuristics function returns max of either largest number out of 
+place or number of b's in the string.
+
+Getg sets current g to parent's g + cost from parent to child
+It also updates f
+'''
 class AstarNode:
     def __init__(self, pancake, flipLocation=0):
         self.pancake = pancake
@@ -140,6 +161,12 @@ class AstarNode:
         self.g = self.parent.g + flips
         self.f = self.g + self.h
 
+'''
+replaces w with 1 and b with 0 and expands
+the node with the max value after this conversion
+Helper function when more than one node in fringe
+may have the same minimum f value
+'''
 def tiebreak(minlist, openlist):
     d = {}
     for i in minlist:
@@ -153,9 +180,12 @@ def tiebreak(minlist, openlist):
         if val > maxval:
             maxval = val
             maxkey = key
-    #print(openlist[maxkey])
     return openlist.pop(maxkey)
 
+'''
+Find the node(s) with minimum f
+Uses tiebreak when multiple node have min f
+'''
 def minf(openlist):
     min = 0
     minList = [0]
@@ -166,35 +196,35 @@ def minf(openlist):
         elif openlist[i].f == openlist[min].f:
             minList.append(i)
     if len(minList) > 1:
-        #print('tie break')
         return tiebreak(minList, openlist)
     else:
         return openlist.pop(min)
 
+'''
+Open List is the fringe that includes nodes that can be explored
+Starts with input string and corresponding node
+Node with minimum f is chosen to expand
 
-
+'''
 def aStar(pancake):
     openlist = [AstarNode(pancake)]
     closedset = set()
     solutionNode = None
     while solutionNode is None:
-        #print([i.pancake for i in openlist])
         current = minf(openlist)
-        #print([i.pancake for i in openlist])
-        #print('Node:', current.pancake)
         for i in range(2,9,2):
-            flip = flip_pancake(current.pancake, i)
-            newChild = AstarNode(flip, i)
-            newChild.parent = current
-            newChild.getG(i//2)
+            flip = flip_pancake(current.pancake, i) # flip growing in size from top
+            newChild = AstarNode(flip, i) # create new child from resulting flip
+            newChild.parent = current # sets current node and child nodes parent
+            newChild.getG(i//2) # set child nodes g as parent nodes g plus position of flip
             if flip == '1w2w3w4w':
-                solutionNode = newChild
+                solutionNode = newChild # exits while loop
                 break
-            if flip not in closedset:
-                openlist.append(newChild)
-            #print('Test')
-        closedset.add(current.pancake)
-    #print(solutionNode.pancake, solutionNode.g, solution) 
+            if flip not in closedset: # if new resulting flip orientation is not seen before
+                openlist.append(newChild) # add to fringe
+        closedset.add(current.pancake) # current node is added to closed set after expanding children
+    
+    # following is for printing purposes only
     finalList = []
     while solutionNode.parent is not None:
         finalList.insert(0, solutionNode)
